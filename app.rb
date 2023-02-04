@@ -1,4 +1,6 @@
 require 'csv'
+require 'open-uri'
+require 'nokogiri'
 
 # É um objeto que representa cada presente
 # gift = {name: "Playstation 5", price: 4999}
@@ -34,11 +36,27 @@ def mark_gift(index)
   save
 end
 
+def import_from_etsy(term)
+  # 1. Definimos qual será a URL do site com o termo da busca nos parametros da url
+  url = "https://www.etsy.com/search?q=#{term}"
+  # 2. Com a gema URI, fazemos o request para receber o documento HTML
+  html_file = URI.open(url)
+  document = Nokogiri::HTML.parse(html_file.read)
+  cards = document.search(".v2-listing-card__info")
+  gifts_from_web = []
+  cards.each do |card|
+    item_name = card.search(".v2-listing-card__title").text.strip
+    item_price = card.search('.currency-value').text.strip.to_f.truncate(2)
+    gifts_from_web << {name: item_name, price: item_price}
+  end
+  return gifts_from_web
+end
+
 def load
   CSV.foreach('gifts.csv', headers: :first_row) do |row|
     # row = ["Playstion 5", "999", "0"]
     # row = {"name" => "Playstation 5", "price" => "999", "bought": "0"}
-    gift = {name: row['name'], price: row['price'].to_i, bought: row['bought'].to_i}
+    gift = {name: row['name'], price: row['price'].to_f, bought: row['bought'].to_i}
     add(gift)
   end
 end

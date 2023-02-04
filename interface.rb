@@ -54,6 +54,26 @@ def mark_gifts
   mark_gift(index_input)
 end
 
+def import_gifts
+  # 1. Perguntar ao usuário qual o presente ele deseja buscar
+  # 2. Listar os presentes importados da web
+  # 3. Perguntar ao usuário qual o item p/ adicionar na lista
+  # 4. Salvar o item escolhido na lista
+  puts "What's the item you want to looking for?"
+  search_input = gets.chomp
+  gifts_from_web = import_from_etsy(search_input)
+  gifts_from_web.each_with_index do |gift, index| # Lista os resultados da web
+    puts "#{index + 1} - #{gift[:name]} | R$ #{gift[:price]}"
+  end
+  puts "What's the index you want to import?"
+  index_input = gets.chomp.to_i - 1
+  gift = gifts_from_web[index_input] # Representa o presente a ser importado
+  # {name: "", price: ""}
+  gift[:bought] = 0
+  # {name: "", price: "", bought: 0}
+  add(gift)
+end
+
 def dispatch(action_number)
   case action_number
   when 1
@@ -62,6 +82,8 @@ def dispatch(action_number)
     add_gifts
   when 3
     delete_gifts
+  when 4
+    import_gifts
   when 5
     mark_gifts
   when 0
